@@ -12,6 +12,6 @@ The parser produces an *Abstract Syntax Tree (AST)* which can be further used to
 
 When processing the AST, one should always treat `children` like such an `ASTList`. Specifically, this means distinguishing between `str` and other iterable types.
 
-All currently supported AST nodes are listed in `wikiparse.ast`. However, none of these types are instances of the `AST` base - they are merely compatible, treating `AST` more like an interface than a common base class.
+All currently supported AST nodes are listed in `wikiparse.ast`. However, none of these types are instances of the `AST` base - they are merely compatible, treating `AST` more like an interface than a common base class. These nodes convey additional type information, which is especially useful for their `children` properties.
 
 The AST node is not designed to implement logic. It is solely designed as a compact data carrier. All parsing logic is implemented in `wikiparse.parser`.
