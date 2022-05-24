@@ -4,6 +4,10 @@ Another WikiText aka. WikiCode aka. MediaWiki Parser - because I had various iss
 *WikiParse* uses a completely different approach and a completely custom parser with few dependencies. It is designed to allow extension of syntax and to create more distinct yet generic abstract syntax trees (ASTs).
 
 
+# NOTE: Special Case
+Currently, WikiParse is built for a specialized project. It contains some syntax parsing specific to Wiktionary (specifically the "meanings reference" convention `[1, 2, 3]`). We will iteratively move toward a more extensible approach.
+
+
 # Abstract Syntax Tree
 The parser produces an *Abstract Syntax Tree (AST)* which can be further used to render HTML. This AST follows a simple yet special formula:
 
