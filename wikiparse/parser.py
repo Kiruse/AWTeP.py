@@ -886,11 +886,16 @@ def consume_pipe(reader: SourceReader, *, optional = False):
     consume_any_whitespace(consumer)
     return True
 
-def consume_tpl_close(reader: SourceReader):
+def consume_tpl_close(reader: SourceReader, *, optional = False):
   with reader.consumer() as consumer:
     consume_any_whitespace(consumer)
     if not consumer.consume('}}'):
-      raise ParserError('Expected }} (end of template/parser function)', reader)
+      if not optional:
+        raise ParserError('Expected }} (end of template/parser function)', reader)
+      else:
+        consumer.revert()
+        return False
+  return True
 
 def consume_invoke(reader: SourceReader):
   with reader.consumer() as consumer:
