@@ -1,8 +1,8 @@
 from typing import *
-from ..wikiparse.source_reader import SourceReader
-from ..wikiparse.parser import *
-from ..wikiparse.ast import *
-from ..wikiparse.error import ParserError, RedirectError
+from .source_reader import SourceReader
+from .parser import *
+from .ast import *
+from .error import ParserError, RedirectError
 import pytest
 
 def test_parse_directive():
