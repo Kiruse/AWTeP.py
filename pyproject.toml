@@ -2,22 +2,23 @@
 name = "wikiparse"
 version = "0.1.0"
 description = "Another WikiText/WikiCode/MediaWiki Parser"
-authors = ["Kiruse"]
-license = "MIT"
+authors = [
+  { name = "Kiruse", email = "neurokiruse@outlook.com" },
+]
+license = { file = "LICENSE" }
 readme = "README.md"
-python = "^3.8" # earlier versions not yet verified
-homepage = "https://github.com/Kiruse/WikiParse.py"
-repository = "https://github.com/Kiruse/WikiParse.py"
-documentation = "https://github.com/Kiruse/WikiParse.py"
-
+requires-python = "~=3.8" # earlier versions not yet verified
 keywords = ["WikiText", "WikiCode", "MediaWiki", "Parser"]
 
+[urls]
+repository = "https://github.com/Kiruse/WikiParse.py"
+
 [dependencies]
-advlog = "^1"
+advlog = "~=1"
 
 [dev-dependencies]
-build = "^0.8"
-pytest = "^7.1.2"
+build = "~=0.8"
+pytest = "~=7.1.2"
 
 [build-system]
 requires = ["setuptools >= 42"]
