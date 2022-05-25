@@ -304,22 +304,35 @@ def _parse_function_switch(reader: SourceReader) -> SwitchNode:
     branches.extend(_parse_function_switch_branch(reader))
     if not consume_pipe(reader, optional=True):
       break
+  consume_tpl_close(reader)
   return SwitchNode(val, branches)
 
 def _parse_function_switch_branch(reader: SourceReader) -> SwitchBranchNode:
   refs = []
   
   def addref():
-    refs.append(parse_text(reader, terminators='=|}', strip='both'))
+    with reader.consumer() as consumer:
+      ast = parse_text(consumer, terminators='=|}', strip='both')
+      copy = consumer.copy()
+      if consume_tpl_close(copy, optional=True):
+        refs.append([TextNode('#default')])
+        consumer.revert()
+      else:
+        refs.append(ast)
   
   addref()
   while consume_pipe(reader, optional=True):
     addref()
   
-  if not reader.consume('='):
-    raise ParserError(f'Unexpected character "{reader.peek()}", expected "=" (switch branch value separator)', reader)
-  
-  rep = parse_text(reader, terminators=tplterm, strip='both')
+  # two cases:
+  # 1) named branch with = designating substitution
+  # 2) unnamed default branch at the end of the switch statement
+  if reader.consume('='):
+    rep = parse_text(reader, terminators=tplterm, strip='both')
+  else:
+    rep = parse_text(reader, terminators=tplterm, strip='both')
+    if not consume_tpl_close(reader.copy()): # do not actually consume - it is consumed by parent function
+      raise ParserError('Expected switch branch value', reader)
   return map(lambda ref: SwitchBranchNode(ref, rep), refs)
 
 def _parse_function_invoke(reader: SourceReader) -> InvokeNode:

@@ -170,6 +170,7 @@ def test_parse_function_switch():
       SwitchBranchNode([TextNode('foo')], [TextNode('bar')]),
       SwitchBranchNode([TextNode('#default')], [TextNode('baz')]),
     ])
+  assert len(source) == 0
   
   source = SourceReader('{{#switch: foo | foo = bar | bar | baz | #default = quux}}')
   assert parse_function(source) == SwitchNode([TextNode('foo')],
@@ -179,6 +180,7 @@ def test_parse_function_switch():
       SwitchBranchNode([TextNode('baz')], [TextNode('quux')]),
       SwitchBranchNode([TextNode('#default')], [TextNode('quux')]),
     ])
+  assert len(source) == 0
   
   source = SourceReader('{{#switch: {{{1|}}}| foo = bar | #default = baz}}')
   assert parse_function(source) == SwitchNode([VariableNode([TextNode('1')], [])],
@@ -186,10 +188,24 @@ def test_parse_function_switch():
       SwitchBranchNode([TextNode('foo')], [TextNode('bar')]),
       SwitchBranchNode([TextNode('#default')], [TextNode('baz')]),
     ])
+  assert len(source) == 0
   
-  with pytest.raises(ParserError):
-    source = SourceReader('{{#switch: foo | foo = bar | baz}}')
-    parse_function(source)
+  source = SourceReader('{{#switch: {{{1|}}}| foo = bar | default value}}')
+  assert parse_function(source) == SwitchNode([VariableNode([TextNode('1')], [])],
+    [
+      SwitchBranchNode([TextNode('foo')], [TextNode('bar')]),
+      SwitchBranchNode([TextNode('#default')], [TextNode('default value')]),
+    ])
+  assert len(source) == 0
+  
+  source = SourceReader('{{#switch: {{{1|}}}| foo = bar | bar | default}}')
+  assert parse_function(source) == SwitchNode([VariableNode([TextNode('1')], [])],
+    [
+      SwitchBranchNode([TextNode('foo')], [TextNode('bar')]),
+      SwitchBranchNode([TextNode('bar')], [TextNode('default')]),
+      SwitchBranchNode([TextNode('#default')], [TextNode('default')]),
+    ])
+  assert len(source) == 0
 
 def test_parse_formatting():
   reader = SourceReader("''text''")
