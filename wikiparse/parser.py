@@ -5,13 +5,12 @@ from .error import ParserError, RedirectError, SkipNode
 from .interface.logger import Logger
 from .source_reader import SourceReader
 
-# parse raw WikiCode source
-def parse(source: str, file: str = '', *, logger: Logger | None = None) -> ASTList:
-  """Parse raw WikiText source code as unbiased text, excluding headlines"""
+def parse(source: str, *, logger: Logger | None = None) -> ASTList:
+  """Parse raw WikiText source code as unbiased text"""
   terminator = lambda r: len(r) == 0
-  return parse_text(SourceReader(source, file, logger), terminators=terminator, no_eof=False, strip='both')
+  return parse_text(SourceReader(source, logger=logger), terminators=terminator, no_eof=False, strip='both')
 
-def parsetpl(source: str, file: str = '', *, logger: Logger | None = None) -> Tuple[ASTList, ASTList]:
+def parsepage(source: str, file: str = '', *, logger: Logger | None = None) -> Tuple[ASTList, ASTList]:
   """Parse the WikiText of a template. Returns [directives, AST] tuple."""
   terminator = lambda r: len(r) == 0
   
@@ -21,36 +20,6 @@ def parsetpl(source: str, file: str = '', *, logger: Logger | None = None) -> Tu
   ast = parse_text(reader, terminators=terminator, no_eof=False, strip='both')
   logger and file and logger.d(f'Finished parsing template {file}')
   return directives, ast
-
-
-def parse_root(reader: SourceReader) -> ASTList:
-  ast: List[AST] = []
-  consume_blanklines(reader)
-  
-  while len(reader):
-    c = reader.peek()
-    
-    if c == '#':
-      ast.append(parse_directive(reader))
-    
-    elif c == '{':
-      ast.append(parse_template(reader))
-    
-    elif c == '=':
-      break
-    
-    elif reader.consume('__notoc__', False):
-      ast.append(AST('notoc'))
-    
-    elif reader.consume('__toc__', False):
-      ast.append(AST('toc'))
-    
-    else:
-      raise ParserError(f'Unexpected root token {c}', reader)
-    consume_trailing_space(reader)
-    consume_blanklines(reader)
-  
-  return ast
 
 
 def parse_directives(reader: SourceReader) -> ASTList:

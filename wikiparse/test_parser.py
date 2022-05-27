@@ -442,10 +442,10 @@ def test_parse_unordered_list():
   reader = SourceReader('\n*foo\n *bar')
   assert parse_text(reader, terminators=term_eof) == [TextNode('\n'), ListNode(False, [ListItemNode(1, [TextNode('foo')]), ListItemNode(1, [TextNode('bar')])])]
 
-def test_parsetpl():
-  assert parsetpl(src_tplfoo, "Vorlage:Foo") == ([], [TextNode("foo\nbar\nbaz")])
+def test_parsepage():
+  assert parsepage(src_tplfoo, "Vorlage:Foo") == ([], [TextNode("foo\nbar\nbaz")])
   
-  assert parsetpl(src_tplbar, "Vorlage:Bar") == ([], [
+  assert parsepage(src_tplbar, "Vorlage:Bar") == ([], [
     IfNode([VariableNode([TextNode('foo')], [])], [TextNode('bar')], [TextNode('baz')])
   ])
 

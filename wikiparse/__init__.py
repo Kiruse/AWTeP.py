@@ -1,1 +1,2 @@
-from .parser import parse, parsetpl
+from .parser import parse, parsepage
+parsetpl = parsepage
