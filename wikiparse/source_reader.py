@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import *
-from advlog import Logger
+from .interface.logger import Logger
 
 class StateError(Exception): pass
 
