@@ -3,6 +3,7 @@ attrs==21.4.0
 build==0.8.0
 certifi==2022.5.18.1
 iniconfig==1.1.1
+iso639-lang==2.0.1
 packaging==21.3
 pep517==0.12.0
 pluggy==1.0.0
