@@ -1,5 +1,3 @@
-advlog==1.0.8
-asyncratelimiter==1.0.0
 attrs==21.4.0
 build==0.8.0
 certifi==2022.5.18.1
