@@ -15,6 +15,7 @@ repository = "https://github.com/Kiruse/WikiParse.py"
 
 [dependencies]
 advlog = "~=1"
+asyncratelimiter = "~=1"
 iso639-lang = "~=2.0.1"
 
 [dev-dependencies]
