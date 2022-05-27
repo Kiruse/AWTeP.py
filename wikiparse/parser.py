@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import *
-from advlog import Logger
-from .error import ParserError, RedirectError, SkipNode
-from .source_reader import SourceReader
 from .ast import *
+from .error import ParserError, RedirectError, SkipNode
+from .interface.logger import Logger
+from .source_reader import SourceReader
 
 # parse raw WikiCode source
 def parse(source: str, file: str = '', *, logger: Logger | None = None) -> ASTList:
