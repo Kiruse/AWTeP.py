@@ -3,7 +3,8 @@ from .source_reader import SourceReader
 
 class ParserError(Exception):
   def __init__(self, msg: str, reader: SourceReader):
-    super().__init__(f'{reader.file}[{reader.line}:{reader.column}]: {msg}')
+    peek = f'"{str(reader)[:100]}..."' if len(reader) > 100 else str(reader)
+    super().__init__(f'{reader.file}[{reader.line}:{reader.column}]: {msg} ({peek})')
 class RedirectError(Exception):
   def __init__(self, url: str, word: Optional[str] = None):
     super().__init__(RedirectError.make_message(word, url))
