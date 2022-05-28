@@ -23,7 +23,7 @@ class MediaWiki:
   
   @property
   def baseurl(self) -> str:
-    return f'https://{self.language.pt1}.{self.host}/'
+    return f'https://{self.language.pt1}.{self.host}'
   
   async def fetch_page(self, title: str, *, namespace: str = '') -> List[AST]:
     "Fetch the given page's parsed WikiText as an AST."
@@ -80,7 +80,7 @@ class MediaWiki:
   
   async def _get_revisions_from(self, title: str, page: Dict) -> List[str]:
     if 'revisions' not in page:
-      raise FileNotFoundError(f'page "{title}" not found', page)
+      raise FileNotFoundError(f'page "{self.baseurl}/wiki/{title}" not found')
     
     revs = []
     for rev in page['revisions']:
