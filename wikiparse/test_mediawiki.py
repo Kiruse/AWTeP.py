@@ -28,6 +28,14 @@ async def test_get_revision():
   assert await mw.get_revision('Main Page')
 
 @pytest.mark.asyncio
+async def test_get_revisions_for():
+  mw = MediaWiki('wiktionary.org', language='de')
+  revs = await mw.get_revisions_for(('Main Page', 'Template:K'))
+  assert revs
+  assert 'Main Page' in revs
+  assert 'Vorlage:K' in revs # canonical title in German
+
+@pytest.mark.asyncio
 async def test_fetch_page():
   mw = MediaWiki('wiktionary.org', language='de')
   assert await mw.fetch_page('Hund')

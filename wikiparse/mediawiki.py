@@ -6,6 +6,7 @@ from iso639 import Lang
 from piodispatch import ascoroutine
 
 from .ast import AST
+from .error import APIError
 from .interface.requester import Requester
 from .interface.logger import Logger
 from .parser import parsepage
@@ -43,10 +44,9 @@ class MediaWiki:
     Thus accepts the same positional and keyword arguments as `MediaWiki.get_revisions_for`."""
     return await self.get_revisions_for((title,), *args, **kwargs)
   
-  async def get_revisions_for(self, titles: Sequence[str], limit = 1) -> Dict[str, Revision] | Revision:
-    """Retrieve `limit` revisions for each listed page by `titles`.
-    Returns a map of pages to revisions if `len(titles) > 1`.
-    Revisions will be either a list of strings or a single string if `limit == 1`.
+  async def get_revisions_for(self, titles: Sequence[str]) -> Dict[str, Revision] | Revision:
+    """Retrieve the latest revision for each page listed by `titles`.
+    Return a single revision if only one title is given, otherwise a mapping from title to revision.
     """
     get = self.requester.get if self.requester else rget
     
@@ -54,40 +54,39 @@ class MediaWiki:
       'action': 'query',
       'titles': '|'.join(titles),
       'prop': 'revisions',
-      'rvlimit': limit,
       'rvprop': 'content',
+      'rvslots': 'main',
       'format': 'json',
     }
     
     res = await get(f'{self.baseurl}/w/api.php', params=params)
     json = res.json()
     
+    if 'error' in json:
+      raise APIError(json['error']['info'])
+    
     pages = json['query']['pages'].values()
     if len(titles) == 1:
-      revs = await self._get_revisions_from(first(titles), first(pages))
-      return first(revs) if limit == 1 else revs
+      return await self._get_revision_from(first(pages))
     else:
       # map pages/titles to list of revisions
       return dict(
         zip(
-          titles,
-          await asyncio.gather((
-            self._get_revisions_from(title, page)
-            for title, page in zip(titles, pages)
+          (page['title'] for page in pages),
+          await asyncio.gather(*(
+            self._get_revision_from(page)
+            for page in pages
           ))
         )
       )
   
-  async def _get_revisions_from(self, title: str, page: Dict) -> List[str]:
-    if 'revisions' not in page:
-      raise FileNotFoundError(f'page "{self.baseurl}/wiki/{title}" not found')
+  async def _get_revision_from(self, data: Dict) -> List[str]:
+    if 'revisions' not in data:
+      raise FileNotFoundError(f'page "{self.baseurl}/wiki/{data["title"]}" not found')
     
-    revs = []
-    for rev in page['revisions']:
-      # assert because we've requested wikitext specifically
-      assert rev['contentmodel'] == 'wikitext'
-      assert rev['contentformat'] == 'text/x-wiki'
-      revs.append(rev['*'])
-    return revs
+    rev = data['revisions'][0]['slots']['main']
+    assert rev['contentmodel'] == 'wikitext'
+    assert rev['contentformat'] == 'text/x-wiki'
+    return rev['*']
 
 Revision = Union[str, List[str]]

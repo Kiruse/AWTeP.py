@@ -1,6 +1,8 @@
 from typing import *
 from .source_reader import SourceReader
 
+class APIError(Exception):
+  pass
 class ParserError(Exception):
   def __init__(self, msg: str, reader: SourceReader):
     peek = f'"{str(reader)[:100]}..."' if len(reader) > 100 else str(reader)
