@@ -1,6 +1,6 @@
 from typing import *
 from iso639 import Lang
-from .mediawiki import MediaWiki
+from .mediawiki import MediaWiki, WikiNamespace
 import pytest
 
 def test_construct():
@@ -15,6 +15,18 @@ def test_construct():
   mw = MediaWiki('wiktionary.org', language='de')
   assert mw.host == 'wiktionary.org'
   assert mw.language == Lang('de')
+
+@pytest.mark.asyncio
+async def test_query_namespaces():
+  mw = MediaWiki(language='de')
+  assert await mw.query_namespaces()
+  
+  ns = mw.namespaces[6]
+  assert type(ns) is WikiNamespace
+  assert ns.id == 6
+  assert ns.name == 'Datei'
+  assert ns.canonical == 'File'
+  assert 'Image' in ns.aliases and 'Bild' in ns.aliases
 
 @pytest.mark.asyncio
 async def test_get_revision():
