@@ -148,6 +148,14 @@ class WikiPage:
     if self._ast is None:
       self._ast = parsepage(self.content, self.title, logger=logger)
     return self._ast
+  
+  @property
+  def pagename(self):
+    return self.title[len(self.namespace.name)+1:]
+  
+  @property
+  def fullpagename(self):
+    return self.title
 
 Revision = Union[str, List[str]]
 

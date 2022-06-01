@@ -52,3 +52,13 @@ async def test_fetch_page():
   mw = MediaWiki('wiktionary.org', language='de')
   assert await mw.fetch_page('Hund')
   assert await mw.fetch_template('K')
+
+@pytest.mark.asyncio
+async def test_page_properties():
+  mw = MediaWiki('wiktionary.org', language='de')
+  await mw.query_namespaces()
+  
+  page = await mw.fetch_template('K')
+  assert page.title == 'Vorlage:K'
+  assert page.pagename == 'K'
+  assert page.fullpagename == 'Vorlage:K'
