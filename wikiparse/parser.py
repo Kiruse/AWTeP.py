@@ -387,6 +387,10 @@ def parse_text(
       except ParserError:
         value += reader.next()
     
+    elif reader.consume('\n'):
+      append_text()
+      values.append(NewlineNode())
+    
     else:
       value += reader.next()
   

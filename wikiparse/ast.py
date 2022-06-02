@@ -37,6 +37,11 @@ class TextNode(AST):
     txt = node.children[0].rstrip()
     return TextNode(txt) if txt else None
 
+class NewlineNode(AST):
+  def __init__(self):
+    self.name = 'newline'
+    self.children = ()
+
 class HeadingNode(AST):
   def __init__(self, title: ASTList, level: int):
     self.name = 'heading'

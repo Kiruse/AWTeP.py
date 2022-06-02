@@ -355,7 +355,7 @@ def test_parse_indent():
   
   reader = SourceReader('\n  :indent with preceeding whitespace')
   ast = parse_text(reader, terminators=lambda r: len(r) == 0)
-  assert ast == [TextNode('\n  '), IndentNode(1), TextNode('indent with preceeding whitespace')]
+  assert ast == [NewlineNode(), TextNode('  '), IndentNode(1), TextNode('indent with preceeding whitespace')]
 
 def test_parse_defref():
   # invalid cases
@@ -440,13 +440,16 @@ def test_parse_unordered_list():
   
   # parse_text integration
   reader = SourceReader('\n*foo\n *bar')
-  assert parse_text(reader, terminators=term_eof) == [TextNode('\n'), ListNode(False, [ListItemNode(1, [TextNode('foo')]), ListItemNode(1, [TextNode('bar')])])]
+  assert parse_text(reader, terminators=term_eof) == [NewlineNode(), ListNode(False, [ListItemNode(1, [TextNode('foo')]), ListItemNode(1, [TextNode('bar')])])]
 
 def test_parsepage():
-  assert parsepage(src_tplfoo, "Vorlage:Foo") == ([], [TextNode("foo\nbar\nbaz")])
+  print(parsepage(src_tplfoo))
+  assert parsepage(src_tplfoo, "Vorlage:Foo") == ([], [NewlineNode(), TextNode('foo'), NewlineNode(), TextNode('bar'), NewlineNode(), TextNode('baz'), NewlineNode()])
   
   assert parsepage(src_tplbar, "Vorlage:Bar") == ([], [
-    IfNode([VariableNode([TextNode('foo')], [])], [TextNode('bar')], [TextNode('baz')])
+    NewlineNode(),
+    IfNode([VariableNode([TextNode('foo')], [])], [TextNode('bar')], [TextNode('baz')]),
+    NewlineNode(),
   ])
 
 src_tplfoo = """
