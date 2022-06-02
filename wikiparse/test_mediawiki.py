@@ -52,6 +52,9 @@ async def test_fetch_page():
   mw = MediaWiki('wiktionary.org', language='de')
   assert await mw.fetch_page('Hund')
   assert await mw.fetch_template('K')
+  
+  with pytest.raises(FileNotFoundError):
+    await mw.fetch_page('foobar')
 
 @pytest.mark.asyncio
 async def test_page_properties():
