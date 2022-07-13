@@ -16,6 +16,15 @@ import requests
 rget = ascoroutine(requests.get)
 
 class MediaWiki:
+  """`MediaWiki` is your interface to an arbitrary WikiMedia style wiki website.
+  
+  The constructor supports different, optional keyword arguments:
+  * `language: str` to use, using ISO-639 language codes. Defaults to `'en'`.
+  * `requester: Requester` web request limiter. Optional.
+  * `logger: Logger` instance to use. Currently not used internally, but can be useful to carry through. Optional.
+  * `namespaces: Dict[str | int, WikiNamespace]` mapping of namespace IDs and/ornames to `WikiNamespace` instances.
+    Optional. Should be populated at runtime using `await wiki.query_namespaces()`.
+  """
   def __init__(self, host = 'wikipedia.org', **kwargs):
     self.host = host
     self.language: Lang = Lang(kwargs.pop('language', 'en')) # raises if language is invalid
