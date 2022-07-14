@@ -14,4 +14,7 @@ def isiterable(it) -> bool:
   except TypeError:
     return False
 
+def iterable(x) -> Iterable:
+  return x if isiterable(x) else (x,)
+
 T = TypeVar("T")
