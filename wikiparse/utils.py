@@ -13,7 +13,7 @@ def isiterable(it) -> bool:
   except TypeError:
     return False
 
-def find_nodes(pred: Callable[[AST], bool], ast: ASTList) -> List[AST]:
+def find_nodes(pred: Callable[[AST], bool], ast: ASTList) -> Generator[AST]:
   if type(ast) is not str and ast is not None:
     for node in ast:
       if type(node) == str:
