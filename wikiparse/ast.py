@@ -41,6 +41,18 @@ class AST:
   @staticmethod
   def isastlike(x) -> bool:
     return isinstance(x, object) and hasattr(x, 'name') and hasattr(x, 'children')
+  
+  @staticmethod
+  def find(pred: Callable[[ASTList], bool], ast: ASTList) -> Generator[AST]:
+    """Iterate through the `ast` and yield all nodes matching `pred`icate."""
+    if type(ast) is not str and ast is not None:
+      for node in ast:
+        if type(node) == str:
+          continue
+        if isiterable(node):
+          yield from AST.find(pred, node)
+        elif pred(node):
+          yield node
 
 class TextNode(AST):
   def __init__(self, text: str):
