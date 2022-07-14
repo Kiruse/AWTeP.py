@@ -1,6 +1,7 @@
 """AST Node Types for more concrete typing in AST nodes."""
 from __future__ import annotations
 from typing import *
+from .utils import isiterable
 
 class AST:
   def __init__(self, name: str, children: List = []):
@@ -21,6 +22,25 @@ class AST:
       if self.children[i] != other.children[i]:
         return False
     return True
+  
+  @staticmethod
+  def clone(ast: ASTList) -> ASTList:
+    """Clone the given AST recursively. If it is a single node, the clone will also be a single node. If it is a list of
+    nodes, the clone will be an array of clones. Only nested arrays of primitives and AST nodes are supported. If a node
+    contains a dictionary, for example, it will be copied by reference.
+    """
+    if isiterable(ast) and not type(ast) is str:
+      copy: List[AST] = []
+      for node in ast:
+        copy.append(AST.clone(node))
+      return copy
+    if AST.isastlike(ast):
+      return AST(ast.name, AST.clone(ast.children))
+    return ast
+  
+  @staticmethod
+  def isastlike(x) -> bool:
+    return isinstance(x, object) and hasattr(x, 'name') and hasattr(x, 'children')
 
 class TextNode(AST):
   def __init__(self, text: str):
