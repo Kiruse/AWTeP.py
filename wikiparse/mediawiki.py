@@ -5,11 +5,12 @@ from typing import *
 from iso639 import Lang
 from piodispatch import ascoroutine
 
-from .ast import AST
+from .ast import AST, ASTList
 from .error import APIError
 from .interface.requester import Requester
 from .interface.logger import Logger
 from .parser import parsepage
+from .transformer import Transcluder, Variables
 from .utils import first
 import requests
 
@@ -31,6 +32,8 @@ class MediaWiki:
     self.requester: Requester | None = kwargs.pop('requester', None)
     self.logger: Logger | None = kwargs.pop('logger', None)
     self.namespaces: Dict[str | int, WikiNamespace] = {}
+    self.transcluder = Transcluder(self.fetch_template_ast)
+    self.templates: Dict[str, WikiPage] = dict()
   
   @property
   def baseurl(self) -> str:
@@ -75,11 +78,20 @@ class MediaWiki:
     return page
   
   async def fetch_template(self, name: str) -> WikiPage:
-    return await self.fetch_page(name, namespace='Template')
+    if name not in self.templates:
+      page = await self.fetch_page(name, namespace='Template')
+      self.templates[name] = page
+    return page
+  
+  async def fetch_template_ast(self, name: str) -> ASTList:
+    return (await self.fetch_template(name)).parse()
   
   async def fetch_module(self, name: str) -> str:
     "Fetching a Module differs from fetching a regular page in that it returns the raw LUA source code as a string."
     raise NotImplementedError()
+  
+  async def transclude(self, page: WikiPage, vars: Variables | None = None) -> ASTList:
+    return await self.transcluder.transform(page.parse())
   
   async def get_revision(self, title: str, *args, **kwargs) -> str:
     """Shortcut for `MediaWiki.get_revisions_for((title,), *args, **kwargs)`.
