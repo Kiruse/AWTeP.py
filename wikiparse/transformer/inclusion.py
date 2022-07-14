@@ -33,7 +33,6 @@ class InclusionTransformer(Transformer):
   def find_onlyinclude(self, ast: ASTList) -> List[OnlyIncludeNode] | NotFound:
     if isiterable(ast) and type(ast) is not str:
       result: List[OnlyIncludeNode] = []
-      print(ast)
       for node in ast:
         curr = self.find_onlyinclude(node)
         if curr is not NotFound:
