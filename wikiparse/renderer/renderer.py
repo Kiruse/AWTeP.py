@@ -20,9 +20,6 @@ class Renderer:
   
   `render` should be called after transclusion.
   """
-  def __init__(self, name: str):
-    self.name = name
-  
   def render(self, ast: ASTList) -> str:
     if type(ast) is str:
       return ast
