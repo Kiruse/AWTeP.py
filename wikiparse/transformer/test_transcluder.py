@@ -1,5 +1,7 @@
 from wikiparse.renderer.html import HTMLRenderer
+from wikiparse.transformer.transformer import Variables
 from ..ast import *
+from ..parser import parse
 from .transcluder import Transcluder, TranscluderAPI
 import pytest
 
@@ -17,6 +19,17 @@ class API(TranscluderAPI):
   
   async def page_exists(self, name: str) -> bool:
     return name in ('foo', 'nested', 'with-var')
+  
+  async def invoke(self, mod: str, fn: str, vars: Variables) -> str:
+    if mod == 'foo':
+      if fn == 'bar':
+        return 'baz'
+    if mod == 'bar':
+      if fn == 'foo':
+        return self.render(vars['foo'])
+      if fn == 'baz':
+        return self.render(vars['baz'])
+    return ''
   
   def render(self, ast: ASTList) -> str:
     return self.renderer.render(ast)
@@ -102,3 +115,26 @@ async def test_evaluate_ifexist():
   ast = [IfExistNode([TextNode('nonexistent')], [TextNode('true')], [TextNode('false')])]
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('false')]
+
+@pytest.mark.asyncio
+async def test_invoke():
+  tf = Transcluder(API())
+  ast = parse(r'{{#invoke:foo|bar}}')
+  assert await tf.matches(ast)
+  assert await tf.transform(ast, dict()) == ['baz']
+  
+  ast = parse(r'{{#invoke:bar|foo|foo=42}}')
+  assert await tf.matches(ast)
+  assert await tf.transform(ast, dict()) == ['42']
+  
+  ast = parse(r'{{#invoke:bar|baz|baz=43}}')
+  assert await tf.matches(ast)
+  assert await tf.transform(ast, dict()) == ['43']
+  
+  ast = parse(r'{{#invoke:foo|boz}}')
+  assert await tf.matches(ast)
+  assert await tf.transform(ast, dict()) == ['']
+  
+  ast = parse(r'{{#invoke:bonk|blorgh}}')
+  assert await tf.matches(ast)
+  assert await tf.transform(ast, dict()) == ['']

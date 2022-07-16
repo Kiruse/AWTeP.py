@@ -18,6 +18,9 @@ class TranscluderAPI:
   async def page_exists(self, page: str) -> ASTList:
     raise NotImplementedError()
   
+  async def invoke(self, mod: str, fn: str, vars: Variables) -> str:
+    raise NotImplementedError()
+  
   def render(self, ast: ASTList) -> str:
     raise NotImplementedError()
   
@@ -100,7 +103,11 @@ class Transcluder(Transformer):
     return unit([])
   
   async def _transclude_invoke(self, node: InvokeNode, vars: Variables):
-    raise NotImplementedError()
+    mod, fn, posargs, namedargs = await self.transform(node.children, vars)
+    mod = self.api.renderid(mod).strip()
+    fn  = self.api.renderid(fn).strip()
+    vars = self.make_vars(posargs, namedargs)
+    return await self.api.invoke(mod, fn, vars)
   
   def make_vars(self, posargs: Sequence[PosArgNode], namedargs: Sequence[NamedArgNode]) -> Variables:
     result = dict()
@@ -108,7 +115,7 @@ class Transcluder(Transformer):
       result[str(i+1)] = posarg.children[0]
     for namedarg in namedargs:
       name, val = namedarg.children
-      result[self.render(name)] = val
+      result[self.api.render(name)] = val
     return result
   
   def make_switch_map(self, branches: Sequence[SwitchBranchNode]):
