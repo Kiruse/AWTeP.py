@@ -5,9 +5,6 @@ from ..ast import FormatNode, TextNode
 from .renderer import Renderer
 
 class IdentifierRenderer(Renderer):
-  def __init__(self):
-    super().__init__('IdentifierRenderer')
-  
   def render_text(self, node: TextNode):
     return node.children[0]
   
