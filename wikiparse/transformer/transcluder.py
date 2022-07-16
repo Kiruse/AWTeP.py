@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import *
 
-from wikiparse.renderer.identifier import IdentifierRenderer
-
-from ..ast import AST, ASTList, NamedArgNode, PosArgNode, TemplateNode, VariableNode
+from ..ast import *
+from ..renderer import Renderer
+from ..renderer.identifier import IdentifierRenderer
 from ..utils import isiterable, iterable
 from .transformer import Transformer, Variables
 from .inclusion import InclusionTransformer
@@ -11,10 +11,22 @@ from .inclusion import InclusionTransformer
 identifier_renderer = IdentifierRenderer()
 inclusion_transformer = InclusionTransformer()
 
+class TranscluderAPI:
+  async def fetch_template(self, name: str) -> ASTList:
+    raise NotImplementedError()
+  
+  async def page_exists(self, page: str) -> ASTList:
+    raise NotImplementedError()
+  
+  def render(self, ast: ASTList) -> str:
+    raise NotImplementedError()
+  
+  def renderid(self, ast: ASTList) -> str:
+    raise NotImplementedError()
+
 class Transcluder(Transformer):
-  def __init__(self, fetch_template: FetchTemplate):
-    self.fetch_template = fetch_template
-    self.identifier_renderer = identifier_renderer
+  def __init__(self, api: TranscluderAPI):
+    self.api = api
   
   async def transform(self, ast: ASTList, vars: Variables) -> ASTList:
     if not vars:
@@ -41,17 +53,54 @@ class Transcluder(Transformer):
     else:
       return ast
   
-  async def _transclude_template(self, tpl: TemplateNode, vars: Variables) -> ASTList:
+  async def _transclude_template(self, tpl: TemplateNode, vars: Variables):
     name, posargs, namedargs = await self.transform(tpl.children, vars)
-    ast = await self.fetch_template(renderid(name))
+    ast = await self.api.fetch_template(self.api.renderid(name))
     vars = self.make_vars(posargs, namedargs)
     return unit(iterable(await transclude_inclusion(await self.transform(ast, vars))))
   
-  async def _transclude_variable(self, var: VariableNode, vars: Variables) -> ASTList:
+  async def _transclude_variable(self, var: VariableNode, vars: Variables):
     name, default = var.children
-    name = renderid(name)
+    name = self.api.renderid(name)
     print(vars[name])
     return unit(iterable(vars[name] if name in vars else default))
+  
+  async def _transclude_if(self, node: IfNode, vars: Variables):
+    cond, true, false = await self.transform(node.children, vars)
+    if self.api.render(cond).strip():
+      return unit(true)
+    else:
+      return unit(false)
+  
+  async def _transclude_ifeq(self, node: IfEqNode, vars: Variables):
+    lhs, rhs, true, false = await self.transform(node.children, vars)
+    slhs = self.api.render(lhs)
+    srhs = self.api.render(rhs)
+    if slhs.strip() == srhs.strip():
+      return unit(true)
+    else:
+      return unit(false)
+  
+  async def _transclude_ifexist(self, node: IfExistNode, vars: Variables):
+    file, true, false = await self.transform(node.children, vars)
+    if await self.api.page_exists(self.api.render(file)):
+      return unit(true)
+    else:
+      return unit(false)
+  
+  async def _transclude_switch(self, node: SwitchNode, vars: Variables):
+    val, branches = await self.transclude(node.children, vars)
+    val = self.api.render(val).strip()
+    branches = self.make_switch_map(branches)
+    
+    if val in branches:
+      return unit(branches[val])
+    if '#default' in branches:
+      return unit(branches['#default'])
+    return unit([])
+  
+  async def _transclude_invoke(self, node: InvokeNode, vars: Variables):
+    raise NotImplementedError()
   
   def make_vars(self, posargs: Sequence[PosArgNode], namedargs: Sequence[NamedArgNode]) -> Variables:
     result = dict()
@@ -61,15 +110,19 @@ class Transcluder(Transformer):
       name, val = namedarg.children
       result[self.render(name)] = val
     return result
+  
+  def make_switch_map(self, branches: Sequence[SwitchBranchNode]):
+    res: Dict[str, ASTList] = dict()
+    for branch in branches:
+      cmp, val = branch.children
+      res[self.api.render(cmp).strip()] = val
+    return res
 
 class unit:
   """Simple wrapper around a `List[AST]` with the semantics that
   interpreting code should flatten instances into an encapsulating list."""
   def __init__(self, ast: List[AST]):
     self.ast = ast
-
-def renderid(ast: ASTList) -> str:
-  return identifier_renderer.render(ast)
 
 async def transclude_inclusion(ast: ASTList) -> ASTList:
   return await inclusion_transformer.transform(ast, dict())
