@@ -12,9 +12,6 @@ class HTMLRenderer(Renderer):
   def __init__(self):
     super().__init__()
   
-  def render_text(self, text: TextNode):
-    return text.children[0]
-  
   def render_italic(self, node: FormatNode):
     return self.render_simple_tag('i', node.children)
   

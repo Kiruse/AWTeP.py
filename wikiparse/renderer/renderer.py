@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import *
 
 from wikiparse.utils import isiterable
-from ..ast import AST, ASTList
+from ..ast import AST, ASTList, TextNode
 
 # these nodes aren't actually rendered - they convey information on
 # their contents and how to render them without being rendered themselves.
@@ -36,6 +36,9 @@ class Renderer:
       else:
         return self.fallback_render(ast)
     return str(ast)
+  
+  def render_text(self, txt: TextNode) -> str:
+    return txt.children[0]
   
   def fallback_render(self, node: AST) -> str:
     if node.name in META_NODES:
