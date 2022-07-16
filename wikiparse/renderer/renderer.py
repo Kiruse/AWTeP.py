@@ -4,6 +4,10 @@ from typing import *
 from wikiparse.utils import isiterable
 from ..ast import AST, ASTList
 
+# these nodes aren't actually rendered - they convey information on
+# their contents and how to render them without being rendered themselves.
+META_NODES = ('noinclude', 'includeonly', 'onlyinclude', 'nowiki')
+
 class Renderer:
   """Base class for specialized renderers.
   
@@ -34,4 +38,6 @@ class Renderer:
     return str(ast)
   
   def fallback_render(self, node: AST) -> str:
+    if node.name in META_NODES:
+      return self.render(node.children)
     raise NotImplementedError()
