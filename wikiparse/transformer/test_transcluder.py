@@ -47,72 +47,66 @@ async def test_identity():
 @pytest.mark.asyncio
 async def test_simple_template():
   tf = Transcluder(API())
-  ast = [TextNode('foo'), TemplateNode('foo', [], [])]
+  ast = parse('foo{{foo}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('foo'), TextNode('foo')]
 
 @pytest.mark.asyncio
 async def test_template_with_var():
   tf = Transcluder(API())
-  ast = [TemplateNode('with-var', [PosArgNode([TextNode('foo')])], [])]
+  ast = parse(r'{{with-var|foo}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('foo')]
 
 @pytest.mark.asyncio
 async def test_nested_template():
   tf = Transcluder(API())
-  ast = [TemplateNode('nested', [], [])]
+  ast = parse(r'{{nested}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('foo')]
 
 @pytest.mark.asyncio
 async def test_evaluate_if():
   tf = Transcluder(API())
-  ast = [IfNode([TextNode('foo')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#if:foo|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('true')]
   
-  tf = Transcluder(API())
-  ast = [IfNode([TextNode('')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#if:|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('false')]
   
-  tf = Transcluder(API())
-  ast = [IfNode([TextNode(' ')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#if: |true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('false')]
 
 @pytest.mark.asyncio
 async def test_evaluate_ifeq():
   tf = Transcluder(API())
-  ast = [IfEqNode([TextNode('lhs')], [TextNode('rhs')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#ifeq:lhs|rhs|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('false')]
   
-  tf = Transcluder(API())
-  ast = [IfEqNode([TextNode('val')], [TextNode('val')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#ifeq:val|val|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('true')]
   
-  tf = Transcluder(API())
-  ast = [IfEqNode([TextNode('val ')], [TextNode(' val')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#ifeq:val | val|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('true')]
   
-  tf = Transcluder(API())
-  ast = [IfEqNode([TextNode('')], [TextNode('val')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#ifeq:|val|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('false')]
 
 @pytest.mark.asyncio
 async def test_evaluate_ifexist():
   tf = Transcluder(API())
-  ast = [IfExistNode([TextNode('foo')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#ifexist:foo|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('true')]
   
-  tf = Transcluder(API())
-  ast = [IfExistNode([TextNode('nonexistent')], [TextNode('true')], [TextNode('false')])]
+  ast = parse(r'{{#ifexist:nonexistent|true|false}}')
   assert await tf.matches(ast)
   assert await tf.transform(ast, dict()) == [TextNode('false')]
 
