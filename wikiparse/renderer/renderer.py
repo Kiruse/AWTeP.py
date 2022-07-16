@@ -40,6 +40,12 @@ class Renderer:
   def render_text(self, txt: TextNode) -> str:
     return txt.children[0]
   
+  def render_comment(self, _) -> str:
+    return ''
+  
+  def render_newline(self, _) -> str:
+    return '\n'
+  
   def fallback_render(self, node: AST) -> str:
     if node.name in META_NODES:
       return self.render(node.children)
