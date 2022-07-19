@@ -5,7 +5,7 @@ from ..ast import *
 from ..renderer import Renderer
 from ..renderer.identifier import IdentifierRenderer
 from ..utils import isiterable, iterable
-from .transformer import Transformer, Variables
+from .transformer import Transformer, Variables, make_vars
 from .inclusion import InclusionTransformer
 
 identifier_renderer = IdentifierRenderer()
@@ -110,13 +110,7 @@ class Transcluder(Transformer):
     return await self.api.invoke(mod, fn, vars)
   
   def make_vars(self, posargs: Sequence[PosArgNode], namedargs: Sequence[NamedArgNode]) -> Variables:
-    result = dict()
-    for i, posarg in enumerate(posargs):
-      result[str(i+1)] = posarg.children[0]
-    for namedarg in namedargs:
-      name, val = namedarg.children
-      result[self.api.render(name)] = val
-    return result
+    return make_vars(self.api.render, posargs, namedargs)
   
   def make_switch_map(self, branches: Sequence[SwitchBranchNode]):
     res: Dict[str, ASTList] = dict()
