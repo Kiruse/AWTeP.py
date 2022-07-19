@@ -10,7 +10,9 @@ from .error import APIError
 from .interface.requester import Requester
 from .interface.logger import Logger
 from .parser import parsepage
+from .renderer import HTMLRenderer, Renderer
 from .transformer import Transcluder, Variables
+from .transformer.transcluder import TranscluderAPI
 from .utils import first
 import requests
 
@@ -25,6 +27,9 @@ class MediaWiki:
   * `logger: Logger` instance to use. Currently not used internally, but can be useful to carry through. Optional.
   * `namespaces: Dict[str | int, WikiNamespace]` mapping of namespace IDs and/ornames to `WikiNamespace` instances.
     Optional. Should be populated at runtime using `await wiki.query_namespaces()`.
+  * `renderer: Renderer` to use for rendering AST to string. Defaults to `HTMLRenderer()`.
+  * `transcluder: Transcluder` to use for transcluding templates & co into callsites. Optional.
+  * `templates: Dict[str, WikiPage]` mapping of predefined templates to their respective AST. Allows overriding. Optional.
   """
   def __init__(self, host = 'wikipedia.org', **kwargs):
     self.host = host
@@ -32,7 +37,8 @@ class MediaWiki:
     self.requester: Requester | None = kwargs.pop('requester', None)
     self.logger: Logger | None = kwargs.pop('logger', None)
     self.namespaces: Dict[str | int, WikiNamespace] = {}
-    self.transcluder = Transcluder(self.fetch_template_ast)
+    self.renderer: Renderer = kwargs.pop('renderer', HTMLRenderer())
+    self.transcluder = Transcluder(kwargs.pop('transcluder_api', TranscluderAPI(self)))
     self.templates: Dict[str, WikiPage] = dict()
   
   @property
@@ -93,6 +99,9 @@ class MediaWiki:
   async def transclude(self, page: WikiPage, vars: Variables | None = None) -> ASTList:
     return await self.transcluder.transform(page.parse())
   
+  def render(self, ast: ASTList) -> str:
+    return self.renderer.render(ast)
+  
   async def get_revision(self, title: str, *args, **kwargs) -> str:
     """Shortcut for `MediaWiki.get_revisions_for((title,), *args, **kwargs)`.
     Thus accepts the same positional and keyword arguments as `MediaWiki.get_revisions_for`."""
@@ -147,6 +156,31 @@ class MediaWiki:
       rev['contentformat'],
       self.namespaces[data['ns']] if data['ns'] in self.namespaces else DEFAULT_NS
     )
+
+class MediaWikiTranscluderAPI(TranscluderAPI):
+  def __init__(self, wiki: MediaWiki):
+    self.wiki = wiki
+  
+  async def fetch_template(self, name: str) -> ASTList:
+    return await self.wiki.fetch_template_ast(name)
+  
+  async def page_exists(self, page: str) -> ASTList:
+    try:
+      await self.fetch_template(self, page)
+      return True
+    except FileNotFoundError:
+      return False
+  
+  async def invoke(self, mod: str, fn: str, vars: Variables) -> str:
+    """Invoke a LUA module - however, WikiParse currently does not support interpreting LUA and thus requires a custom
+    implementation of this method."""
+    raise NotImplementedError()
+  
+  def render(self, ast: ASTList) -> str:
+    return self.wiki.renderer.render(ast)
+  
+  def renderid(self, ast: ASTList) -> str:
+    return self.render(ast)
 
 class WikiNamespace:
   "Simple data class storing meta data on a WikiMedia project namespace."
