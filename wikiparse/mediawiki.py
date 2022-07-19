@@ -38,7 +38,7 @@ class MediaWiki:
     self.logger: Logger | None = kwargs.pop('logger', None)
     self.namespaces: Dict[str | int, WikiNamespace] = {}
     self.renderer: Renderer = kwargs.pop('renderer', HTMLRenderer())
-    self.transcluder = Transcluder(kwargs.pop('transcluder_api', TranscluderAPI(self)))
+    self.transcluder = Transcluder(kwargs.pop('transcluder_api', MediaWikiTranscluderAPI(self)))
     self.templates: Dict[str, WikiPage] = dict()
   
   @property
