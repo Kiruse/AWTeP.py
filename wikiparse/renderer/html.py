@@ -54,7 +54,7 @@ class HTMLRenderer(Renderer):
   
   def render_link(self, link: LinkNode):
     label, url = link.children
-    return f'<a href="{htmlescape(url)}">{label}</a>'
+    return f'<a href="{htmlescape(self.render(url))}">{self.render(label)}</a>'
   
   def render_linebreak(self, _):
     return '<br/>'
