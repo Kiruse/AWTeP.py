@@ -96,8 +96,11 @@ class MediaWiki:
     "Fetching a Module differs from fetching a regular page in that it returns the raw LUA source code as a string."
     raise NotImplementedError()
   
-  async def transclude(self, page: WikiPage, vars: Variables | None = None) -> ASTList:
-    return await self.transcluder.transform(page.parse())
+  async def transclude(self, ast: ASTList | WikiPage, vars: Variables | None = None) -> ASTList:
+    if vars is None: vars = dict()
+    if hasattr(ast, 'parse'):
+      return await self.transcluder.transform(ast.parse(), vars)
+    return await self.transcluder.transform(ast, vars)
   
   def render(self, ast: ASTList) -> str:
     return self.renderer.render(ast)
