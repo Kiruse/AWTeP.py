@@ -443,7 +443,6 @@ def test_parse_unordered_list():
   assert parse_text(reader, terminators=term_eof) == [NewlineNode(), ListNode(False, [ListItemNode(1, [TextNode('foo')]), ListItemNode(1, [TextNode('bar')])])]
 
 def test_parsepage():
-  print(parsepage(src_tplfoo))
   assert parsepage(src_tplfoo, "Vorlage:Foo") == ([], [NewlineNode(), TextNode('foo'), NewlineNode(), TextNode('bar'), NewlineNode(), TextNode('baz'), NewlineNode()])
   
   assert parsepage(src_tplbar, "Vorlage:Bar") == ([], [

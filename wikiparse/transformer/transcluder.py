@@ -65,7 +65,6 @@ class Transcluder(Transformer):
   async def _transclude_variable(self, var: VariableNode, vars: Variables):
     name, default = var.children
     name = self.api.renderid(name)
-    print(vars[name])
     return unit(iterable(vars[name] if name in vars else default))
   
   async def _transclude_if(self, node: IfNode, vars: Variables):
