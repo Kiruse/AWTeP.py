@@ -197,9 +197,11 @@ class WikiPage:
     self.content = content
     self.format = format
     self.namespace = namespace
-    self._ast: Tuple[List[AST], List[AST]] | None = None
+    self._ast: Tuple[ASTList, ASTList] | None = None
   
-  def parse(self, *, logger: Logger | None = None) -> List[AST]:
+  def parse(self, *, logger: Logger | None = None):
+    """Parse the WikiText of the represented page and cache it.
+    Returns a tuple of directives & AST."""
     if self._ast is None:
       self._ast = parsepage(self.content, self.title, logger=logger)
     return self._ast
