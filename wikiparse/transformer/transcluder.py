@@ -91,7 +91,7 @@ class Transcluder(Transformer):
       return unit(false)
   
   async def _transclude_switch(self, node: SwitchNode, vars: Variables):
-    val, branches = await self.transclude(node.children, vars)
+    val, branches = await self.transform(node.children, vars)
     val = self.api.render(val).strip()
     branches = self.make_switch_map(branches)
     
