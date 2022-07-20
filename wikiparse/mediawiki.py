@@ -39,7 +39,7 @@ class MediaWiki:
     self.namespaces: Dict[str | int, WikiNamespace] = {}
     self.renderer: Renderer = kwargs.pop('renderer', HTMLRenderer())
     self.transcluder = Transcluder(kwargs.pop('transcluder_api', MediaWikiTranscluderAPI(self)))
-    self.templates: Dict[str, WikiPage] = dict()
+    self.templates: Dict[str, WikiPage] = kwargs.pop('templates', dict())
   
   @property
   def baseurl(self) -> str:
