@@ -85,9 +85,8 @@ class MediaWiki:
   
   async def fetch_template(self, name: str) -> WikiPage:
     if name not in self.templates:
-      page = await self.fetch_page(name, namespace='Template')
-      self.templates[name] = page
-    return page
+      self.templates[name] = await self.fetch_page(name, namespace='Template')
+    return self.templates[name]
   
   async def fetch_template_ast(self, name: str) -> ASTList:
     return (await self.fetch_template(name)).parse()
