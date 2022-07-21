@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import *
 from ..ast import ASTList, NamedArgNode, PosArgNode
+from ..wikipage import WikiPage
 
 class Transformer:
   async def matches(self, ast: ASTList) -> bool:
     return True
   
-  async def transform(self, ast: ASTList, vars: Variables) -> ASTList:
+  async def transform(self, ast: ASTList, vars: Variables, page: WikiPage) -> ASTList:
     raise NotImplementedError()
 
 def make_vars(render: Callable[[ASTList], str], posargs: Sequence[PosArgNode], namedargs: Sequence[NamedArgNode]) -> Variables:

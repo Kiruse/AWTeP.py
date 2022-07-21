@@ -3,6 +3,7 @@ from typing import *
 
 from ..ast import AST, ASTList, OnlyIncludeNode
 from ..utils import NotFound, isiterable
+from ..wikipage import WikiPage
 from .transformer import Transformer, Variables
 
 class InclusionTransformer(Transformer):
@@ -22,7 +23,7 @@ class InclusionTransformer(Transformer):
   is because the <onlyinclude> algorithm promotes any and all tags
   regardless of context, such as evaluating parser functions.
   """
-  async def transform(self, ast: ASTList, _: Variables) -> ASTList:
+  async def transform(self, ast: ASTList, _: Variables, page: WikiPage) -> ASTList:
     if (only := self.find_onlyinclude(ast)) is not NotFound:
       result: List[AST] = []
       for node in only:

@@ -58,7 +58,7 @@ class Transcluder(Transformer):
       return ast
   
   async def _transclude_template(self, tpl: TemplateNode, vars: Variables, page: WikiPage | None):
-    name, posargs, namedargs = await self.transform(tpl.children, vars)
+    name, posargs, namedargs = await self.transform(tpl.children, vars, page)
     name = self.api.renderid(name)
     if self.logger:
       if page:
@@ -69,7 +69,7 @@ class Transcluder(Transformer):
     tplpage = await self.api.fetch_template(name)
     _, tplast = tplpage.parse(logger=self.logger)
     vars = self.make_vars(posargs, namedargs)
-    return unit(iterable(await transclude_inclusion(await self.transform(tplast, vars, tplpage))))
+    return unit(iterable(await transclude_inclusion(await self.transform(tplast, vars, tplpage), page)))
   
   async def _transclude_variable(self, var: VariableNode, vars: Variables, page: WikiPage | None):
     name, default = var.children
@@ -77,14 +77,14 @@ class Transcluder(Transformer):
     return unit(iterable(vars[name] if name in vars else default))
   
   async def _transclude_if(self, node: IfNode, vars: Variables, page: WikiPage | None):
-    cond, true, false = await self.transform(node.children, vars)
+    cond, true, false = await self.transform(node.children, vars, page)
     if self.api.render(cond).strip():
       return unit(true)
     else:
       return unit(false)
   
   async def _transclude_ifeq(self, node: IfEqNode, vars: Variables, page: WikiPage | None):
-    lhs, rhs, true, false = await self.transform(node.children, vars)
+    lhs, rhs, true, false = await self.transform(node.children, vars, page)
     slhs = self.api.render(lhs)
     srhs = self.api.render(rhs)
     if slhs.strip() == srhs.strip():
@@ -93,14 +93,14 @@ class Transcluder(Transformer):
       return unit(false)
   
   async def _transclude_ifexist(self, node: IfExistNode, vars: Variables, page: WikiPage | None):
-    file, true, false = await self.transform(node.children, vars)
+    file, true, false = await self.transform(node.children, vars, page)
     if await self.api.page_exists(self.api.render(file)):
       return unit(true)
     else:
       return unit(false)
   
   async def _transclude_switch(self, node: SwitchNode, vars: Variables, page: WikiPage | None):
-    val, branches = await self.transform(node.children, vars)
+    val, branches = await self.transform(node.children, vars, page)
     val = self.api.render(val).strip()
     branches = self.make_switch_map(branches)
     
@@ -111,7 +111,7 @@ class Transcluder(Transformer):
     return unit([])
   
   async def _transclude_invoke(self, node: InvokeNode, vars: Variables, page: WikiPage | None):
-    mod, fn, posargs, namedargs = await self.transform(node.children, vars)
+    mod, fn, posargs, namedargs = await self.transform(node.children, vars, page)
     mod = self.api.renderid(mod).strip()
     fn  = self.api.renderid(fn).strip()
     vars = self.make_vars(posargs, namedargs)
@@ -133,7 +133,7 @@ class unit:
   def __init__(self, ast: List[AST]):
     self.ast = ast
 
-async def transclude_inclusion(ast: ASTList) -> ASTList:
-  return await inclusion_transformer.transform(ast, dict())
+async def transclude_inclusion(ast: ASTList, page: WikiPage) -> ASTList:
+  return await inclusion_transformer.transform(ast, dict(), page)
 
 FetchTemplate = Callable[[str], Awaitable[ASTList]]
