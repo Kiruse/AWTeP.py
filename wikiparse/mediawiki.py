@@ -24,7 +24,7 @@ class MediaWiki:
   The constructor supports different, optional keyword arguments:
   * `language: str` to use, using ISO-639 language codes. Defaults to `'en'`.
   * `requester: Requester` web request limiter. Optional.
-  * `logger: Logger` instance to use. Currently not used internally, but can be useful to carry through. Optional.
+  * `logger: Logger` instance to use. Used to log additional verbose & debugging information. Optional.
   * `namespaces: Dict[str | int, WikiNamespace]` mapping of namespace IDs and/ornames to `WikiNamespace` instances.
     Optional. Should be populated at runtime using `await wiki.query_namespaces()`.
   * `renderer: Renderer` to use for rendering AST to string. Defaults to `HTMLRenderer()`.
@@ -38,7 +38,7 @@ class MediaWiki:
     self.logger: Logger | None = kwargs.pop('logger', None)
     self.namespaces: Dict[str | int, WikiNamespace] = {}
     self.renderer: Renderer = kwargs.pop('renderer', HTMLRenderer())
-    self.transcluder = Transcluder(kwargs.pop('transcluder_api', MediaWikiTranscluderAPI(self)))
+    self.transcluder = Transcluder(kwargs.pop('transcluder_api', MediaWikiTranscluderAPI(self)), self.logger)
     self.templates: Dict[str, WikiPage] = kwargs.pop('templates', dict())
   
   @property

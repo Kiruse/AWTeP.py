@@ -1,8 +1,7 @@
 from __future__ import annotations
 from typing import *
-
 from ..ast import *
-from ..renderer import Renderer
+from ..interface import Logger
 from ..renderer.identifier import IdentifierRenderer
 from ..utils import isiterable, iterable
 from .transformer import Transformer, Variables, make_vars
@@ -28,8 +27,9 @@ class TranscluderAPI:
     raise NotImplementedError()
 
 class Transcluder(Transformer):
-  def __init__(self, api: TranscluderAPI):
+  def __init__(self, api: TranscluderAPI, logger: Logger | None = None):
     self.api = api
+    self.logger = logger
   
   async def transform(self, ast: ASTList, vars: Variables) -> ASTList:
     if not vars:
@@ -56,9 +56,13 @@ class Transcluder(Transformer):
     else:
       return ast
   
-  async def _transclude_template(self, tpl: TemplateNode, vars: Variables):
+  async def _transclude_template(self, tpl: TemplateNode, vars: Variables, page = ''):
     name, posargs, namedargs = await self.transform(tpl.children, vars)
-    ast = await self.api.fetch_template(self.api.renderid(name))
+    name = self.api.renderid(name)
+    if self.logger:
+      self.logger.d(f'Transcluding {name} into {page}')
+    
+    ast = await self.api.fetch_template(name)
     vars = self.make_vars(posargs, namedargs)
     return unit(iterable(await transclude_inclusion(await self.transform(ast, vars))))
   
