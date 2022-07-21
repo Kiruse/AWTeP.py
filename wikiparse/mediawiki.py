@@ -105,12 +105,12 @@ class MediaWiki:
   def render(self, ast: ASTList) -> str:
     return self.renderer.render(ast)
   
-  async def get_revision(self, title: str, *args, **kwargs) -> str:
+  async def get_revision(self, title: str, *args, **kwargs) -> WikiPage:
     """Shortcut for `MediaWiki.get_revisions_for((title,), *args, **kwargs)`.
     Thus accepts the same positional and keyword arguments as `MediaWiki.get_revisions_for`."""
     return await self.get_revisions_for((title,), *args, **kwargs)
   
-  async def get_revisions_for(self, titles: Sequence[str]) -> Dict[str, Revision] | Revision:
+  async def get_revisions_for(self, titles: Sequence[str]) -> Dict[str, WikiPage] | WikiPage:
     """Retrieve the latest revision for each page listed by `titles`.
     Return a single revision if only one title is given, otherwise a mapping from title to revision.
     """
@@ -146,7 +146,7 @@ class MediaWiki:
         )
       )
   
-  async def _get_revision_from(self, data: Dict) -> List[str]:
+  async def _get_revision_from(self, data: Dict):
     if 'revisions' not in data:
       raise FileNotFoundError(f'page "{self.baseurl}/wiki/{data["title"]}" not found')
     
@@ -184,7 +184,5 @@ class MediaWikiTranscluderAPI(TranscluderAPI):
   
   def renderid(self, ast: ASTList) -> str:
     return self.render(ast)
-
-Revision = Union[str, List[str]]
 
 DEFAULT_NS = WikiNamespace('', None, [], 0)
