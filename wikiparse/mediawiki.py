@@ -80,27 +80,32 @@ class MediaWiki:
   async def fetch_page(self, title: str, *, namespace: str = '') -> WikiPage:
     "Fetch the given page's parsed WikiText as an AST."
     file = f'{namespace}:{title}' if namespace else title
+    if self.logger:
+      self.logger.v(f'Fetching page {file}')
     page = await self.get_revision(file)
-    page.parse()
+    page.parse(logger=self.logger)
     return page
   
   async def fetch_template(self, name: str) -> WikiPage:
     if name not in self.templates:
       self.templates[name] = await self.fetch_page(name, namespace='Template')
+    elif self.logger:
+      self.logger.d(f'Template {name} was cached')
     return self.templates[name]
   
   async def fetch_template_ast(self, name: str) -> ASTList:
-    return (await self.fetch_template(name)).parse()
+    return (await self.fetch_template(name)).parse(logger=self.logger)
   
   async def fetch_module(self, name: str) -> str:
     "Fetching a Module differs from fetching a regular page in that it returns the raw LUA source code as a string."
     raise NotImplementedError()
   
-  async def transclude(self, ast: ASTList | WikiPage, vars: Variables | None = None) -> ASTList:
+  async def transclude(self, ast: ASTList | WikiPage, vars: Variables | None = None, page: WikiPage | None = None) -> ASTList:
     if vars is None: vars = dict()
     if hasattr(ast, 'parse'):
-      return await self.transcluder.transform(ast.parse(), vars)
-    return await self.transcluder.transform(ast, vars)
+      page = ast
+      _, ast = page.parse(logger=self.logger)
+    return await self.transcluder.transform(ast, vars, page=page)
   
   def render(self, ast: ASTList) -> str:
     return self.renderer.render(ast)
