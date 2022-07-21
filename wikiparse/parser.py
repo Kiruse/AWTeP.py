@@ -14,11 +14,9 @@ def parsepage(source: str, file: str = '', *, logger: Logger | None = None) -> T
   """Parse the WikiText of a template. Returns [directives, AST] tuple."""
   terminator = lambda r: len(r) == 0
   
-  logger and file and logger.d(f'Parsing template {file}')
   reader = SourceReader(source, file, logger)
   directives = parse_directives(reader)
   ast = parse_text(reader, terminators=terminator, no_eof=False, strip='both')
-  logger and file and logger.d(f'Finished parsing template {file}')
   return directives, ast
 
 
