@@ -105,6 +105,7 @@ class MediaWiki:
     if hasattr(ast, 'parse'):
       page = ast
       _, ast = page.parse(logger=self.logger)
+    # TODO: first transform ast by filtering out <onlyinclude> and <includeonly> nodes
     return await self.transcluder.transform(ast, vars, page=page)
   
   def render(self, ast: ASTList) -> str:
