@@ -23,7 +23,11 @@ class InclusionTransformer(Transformer):
   is because the <onlyinclude> algorithm promotes any and all tags
   regardless of context, such as evaluating parser functions.
   """
-  async def transform(self, ast: ASTList, _: Variables, page: WikiPage) -> ASTList:
+  async def transform(self, ast: WikiPage | ASTList, _: Variables, page: WikiPage | None) -> ASTList:
+    if (hasattr(ast, 'parse')):
+      page = ast
+      _, ast = page.parse()
+    
     if (only := self.find_onlyinclude(ast)) is not NotFound:
       result: List[AST] = []
       for node in only:
