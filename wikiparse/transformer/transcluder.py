@@ -62,7 +62,7 @@ class Transcluder(Transformer):
     name = self.api.renderid(name)
     if self.logger:
       if page:
-        self.logger.d(f'Transcluding {name} into {page}')
+        self.logger.d(f'Transcluding {name} into {page.title}')
       else:
         self.logger.d(f'Transcluding {name} into unknown page')
     
