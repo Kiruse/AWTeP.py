@@ -7,7 +7,7 @@ class Transformer:
   async def matches(self, ast: ASTList) -> bool:
     return True
   
-  async def transform(self, ast: WikiPage | ASTList, vars: Variables, page: WikiPage | None) -> ASTList:
+  async def transform(self, ast: WikiPage | ASTList, vars: Variables, page: WikiPage | None = None) -> ASTList:
     raise NotImplementedError()
 
 def make_vars(render: Callable[[ASTList], str], posargs: Sequence[PosArgNode], namedargs: Sequence[NamedArgNode]) -> Variables:
